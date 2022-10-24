@@ -12,7 +12,7 @@ int main (void)
     printf ("Connecting to hello world server…\n");
     zmq::socket_t sock (context, ZMQ_REQ);
     sock.connect("ipc:///tmp/test");
-    char msg[] = "Hell0";
+    char msg[] = "Hell1";
     char buffer[256] = {0x00};
     int request_nbr;
     for (request_nbr = 0; request_nbr != 10; request_nbr++) {

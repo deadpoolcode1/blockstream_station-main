@@ -4,8 +4,8 @@ CC      = g++
 # compiler flags:
 #  -g    adds debugging information to the executable file
 #  -Wall turns on most, but not all, compiler warnings
-CCFLAGS = -g -Wall
-LIBS = -lzmq
+CCFLAGS =  
+LIBS = -lzmq -pthread --std=c++11
 RM      = rm -rf
 
 default: all
@@ -13,8 +13,17 @@ default: all
 all: main
 
 main: main.cpp
-	$(CC) $(CCFLAGS) $(LIBS) -o main main.cpp
+	$(CC) main.cpp -o main $(LIBS)
 	@echo "Build complete"
+
+client: client.cpp
+	$(CC) client.cpp -o client $(LIBS)
+	@echo "Build complete"
+	
+server: server.cpp
+	$(CC) server.cpp -o server $(LIBS)
+	@echo "Build complete"
+
 clean:
 	$(RM) *.dSYM *.out main
 	@echo "Clean complete"
