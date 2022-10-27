@@ -15,7 +15,7 @@ int main (void)
     char msg[] = "Hell0";
     char buffer[256] = {0x00};
     int request_nbr;
-    for (request_nbr = 0; request_nbr != 10; request_nbr++) {
+    for (request_nbr = 0; request_nbr != 10000; request_nbr++) {
       zmq_send(sock, strdup(msg), strlen(msg), 0);
       std::cout << "Sending Hello" << std::endl;
       zmq::message_t reply;

@@ -24,7 +24,7 @@ int main () {
         std::cout << "Server Receive " + temp << std::endl;
 
         //  Do some 'work'
-        sleep (1);
+        //sleep (1);
 
         //  Send reply back to client
         zmq::message_t reply (5);
