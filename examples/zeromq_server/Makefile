@@ -8,13 +8,12 @@ CCFLAGS =
 LIBS = -lzmq -pthread --std=c++11
 RM      = rm -rf
 
-default: all
+default: server
 
-all: main
-
-main: main.cpp
-	$(CC) main.cpp -o main.o $(LIBS)
+client: client.cpp
+	$(CC) server.cpp -o server.out $(LIBS)
 	@echo "Build complete"
+	
 clean:
-	$(RM) *.dSYM *.out main
+	$(RM) *.dSYM *.out
 	@echo "Clean complete"
