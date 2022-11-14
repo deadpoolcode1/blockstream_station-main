@@ -10,10 +10,10 @@ RM      = rm -rf
 
 default: server
 
-client: client.cpp
-	$(CC) server.cpp -o server.out $(LIBS)
+server: server.cpp
+	$(CC) server.cpp -o server $(LIBS)
 	@echo "Build complete"
 	
 clean:
-	$(RM) *.dSYM *.out
+	$(RM) *.dSYM *.out server
 	@echo "Clean complete"

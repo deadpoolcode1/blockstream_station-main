@@ -11,9 +11,9 @@ RM      = rm -rf
 default: client
 
 client: client.cpp
-	$(CC) client.cpp -o client.out $(LIBS)
+	$(CC) client.cpp -o client $(LIBS)
 	@echo "Build complete"
 	
 clean:
-	$(RM) *.dSYM *.out
+	$(RM) *.dSYM *.out client
 	@echo "Clean complete"
