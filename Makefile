@@ -13,7 +13,7 @@ default: all
 all: main
 
 main: main.cpp
-	$(CC) main.cpp -o main.o $(LIBS)
+	$(CC) main.cpp libs/database.cpp -o main.o $(LIBS)
 	@echo "Build complete"
 clean:
 	$(RM) *.dSYM *.out main
