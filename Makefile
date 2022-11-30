@@ -5,7 +5,7 @@ CC      = g++
 #  -g    adds debugging information to the executable file
 #  -Wall turns on most, but not all, compiler warnings
 CCFLAGS =  
-LIBS = -lzmq -pthread --std=c++11
+LIBS = -lzmq -pthread -lmysqlclient --std=c++11 
 RM      = rm -rf
 
 default: all

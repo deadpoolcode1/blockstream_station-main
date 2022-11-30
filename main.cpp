@@ -16,15 +16,6 @@ int main (void)
     char msg[] = "get_conf";
     char buffer[256] = {0x00};
     int request_nbr;
-    for (request_nbr = 0; request_nbr != 10; request_nbr++) {
-      zmq_send(sock, strdup(msg), strlen(msg), 0);
-      std::cout << "Sending Hello" << std::endl;
-      zmq::message_t reply;
-      zmq_recv(sock, buffer, sizeof(buffer), 0);
-      std::string temp(buffer);
-      std::cout << "Receive " + temp << std::endl;
-    }
-    sock.close();
     read_initial_configuration();
     state_machine();
     return 0;
