@@ -1,9 +1,9 @@
 #include <mysql/mysql.h>
 #include <stdio.h>
 const char *server = "localhost";
-const char *user = "ilan";
+const char *user = "root";
 const char *password = "12345678";
-const char *database = "ilandb";
+const char *database = "blockstreams";
 
 void database_on_get(void)
 {
@@ -21,8 +21,8 @@ void database_on_get(void)
                 exit(1);
         }
 
-        if (mysql_query(conn, "SELECT * FROM `blockstreams`")) {
-                printf("Unable to query table blockstreams\n");
+        if (mysql_query(conn, "SELECT * FROM `blockstreamst`")) {
+                printf("Unable to query table blockstreamst\n");
                 mysql_close(conn);
                 exit(1);
         }
@@ -61,9 +61,9 @@ void database_on_set(int temp, int humid) {
         }
 
         char cmd_query[128] = {0x00};
-        snprintf(cmd_query, sizeof(cmd_query), "Insert into `blockstreams` values(%d,%d)", temp, humid);
+        snprintf(cmd_query, sizeof(cmd_query), "Insert into `blockstreamst` values(%d,%d)", temp, humid);
         if (mysql_query(conn, cmd_query)) {
-                printf("Unable to insert data into `blockstreams` table\n");
+                printf("Unable to insert data into `blockstreamst` table\n");
                 mysql_close(conn);
                 exit(1);
         }
