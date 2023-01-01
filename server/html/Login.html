@@ -1,0 +1,107 @@
+﻿<!DOCTYPE html>
+<!--[if lt IE 7 ]> <html lang="en" class="no-js ie6"> <![endif]--> 
+<!--[if IE 7 ]> <html lang="en" class="no-js ie7"> <![endif]--> 
+<!--[if IE 8 ]> <html lang="en" class="no-js ie8"> <![endif]--> 
+<!--[if IE 9 ]> <html lang="en" class="no-js ie9"> <![endif]--> 
+<!--[if (gt IE 9)|!(IE)]><!--><html><!--<![endif]--> 
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="keywords" content="networks, innovation, smart networks, M2M, artificial intelligence, microprocessor, microcontroler, future of smart networks">
+    <meta name="description" content="BlockStream">
+    <meta name="author" content="BlockStream">
+    
+    <title>BlockStream | Log In</title>
+
+    <link href='http://fonts.googleapis.com/css?family=Aldrich' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="css/nexionstyle.css">
+	<link rel="stylesheet" type="text/css" href="css/jquery.fs.naver.css" />
+    <link rel="icon" type="image/png" href="images/favicon.png" />
+    
+    <script type="text/javascript" src="js/jquery-1.7.2.min.js"></script>
+    <script type="text/javascript" src="js/modernizr.min.js"></script>
+    <script type="text/javascript" src="js/jquery.fs.naver.js"></script>
+    <script type="text/javascript" src="js/image.load.min.js"></script>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            var $window = $(window);
+            /* SCROLL TO TOP */
+            $(window).scroll(function () {
+                if ($(this).scrollTop() > 100) {
+                    $('.scrollup').fadeIn();
+                } else {
+                    $('.scrollup').fadeOut();
+                }
+            });
+
+            $('.scrollup').click(function () {
+                $("html, body").animate({ scrollTop: 0 }, 600);
+                return false;
+            });
+
+            /* GET CURRENT YEAR FOR FOOTER */
+            var currentYear = (new Date).getFullYear();
+            $("#year").text(currentYear);
+        });
+    </script>
+	<script type="text/javascript">
+		function login (username,password)
+		{
+			$.ajax({
+				url: '/cgi-bin/login.cgi?username='+username+'&password='+password,
+				success:function(data){
+				if (data.indexOf("ok")>-1) 
+                {
+                    window.location.href = "status.html"; 
+                }
+				else alert(data);
+				}
+			});
+		}
+	</script>
+
+
+
+    <!--[if IE]>
+        <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <!--[if !IE 7]>
+	<style type="text/css">
+		#wrap {display:table;height:100%}
+	</style>
+    <![endif]-->
+    <!--[if lte IE 7]><script src="js/lte-ie7.js"></script><![endif]-->
+</head>
+<body>
+    <div id="container" class="form admin">
+        <header id="header">
+            <div id="header-content">
+                <hgroup id="logo">
+                    <div id="divLogo" class="fade">
+                        <a href="#"><img src="images/logo_white.png" id="btnLogo" alt="BlockStream Home" title="BlockStream Home" /></a>
+                    </div>
+                </hgroup>
+            </div>
+        </header>
+            
+        <section id="content-no-header">
+           <h2>
+                LOGIN
+           </h2>
+           <article>
+                <div id="login">
+                        <input ID="usernameid" type="text" MaxLength="50"  class="text-area" placeholder="Login *" />
+                        <br />
+                        <input ID="passwordid" type="password" MaxLength="50" class="text-area" placeholder="Password *" />
+                        <br />
+                        <input id="BtnSubmit" type="button" class="button" value="ENTER" OnClick="login(usernameid.value,passwordid.value)" />
+                </div>
+            </article>
+            <footer>
+                <p><a href="https://www.blockstream.com/">Copyright © <span id="year"></span> BlockStream  Bitcoin and digital asset infrastructure</a></p>
+            </footer>
+            <a href="#" class="scrollup">Scroll</a>
+        </section>
+    </div>
+</body>
+</html>
