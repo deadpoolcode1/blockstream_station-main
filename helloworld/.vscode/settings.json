@@ -7,9 +7,9 @@
 		"PROGRAM":"hello_evb.bin",
 
 		/* Yocto SDK Configuration */
-		"ARCH":"aarch64-poky-linux",
-		"OECORE_NATIVE_SYSROOT":"/opt/fsl-imx-xwayland/5.10-hardknott/sysroots/x86_64-pokysdk-linux",
-		"SDKTARGETSYSROOT": "/opt/fsl-imx-xwayland/5.10-hardknott/sysroots/cortexa53-crypto-poky-linux/",
+		"ARCH":"arm-xilinx-linux-gnueabi",
+		"OECORE_NATIVE_SYSROOT":"/opt/petalinux/2022.2/sysroots/x86_64-petalinux-linux",
+		"SDKTARGETSYSROOT": "/opt/petalinux/2022.2/sysroots/cortexa9t2hf-neon-xilinx-linux-gnueabi/",
 
 		/* Yocto SDK Constants */
 		"CC_PREFIX": "${config:MCONFIG.OECORE_NATIVE_SYSROOT}/usr/bin/${config:MCONFIG.ARCH}/${config:MCONFIG.ARCH}-",
