@@ -28,7 +28,7 @@ configuration is kept in object.
 static int read_initial_configuration()
 {
   database_on_get();
-  database_on_set(23,42);
+  database_on_set(25,45);
   database_on_get();
   return 0;
 }
