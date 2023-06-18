@@ -1,28 +1,49 @@
 {
-    "version": "0.2.0",
-    "configurations": [
+  "version": "0.2.0",
+  "configurations": [
       {
-        "name": "Debug Yocto",
-        "type": "cppdbg",
-        "request": "launch",
-        "program": "${workspaceFolder}/${config:MCONFIG.PROGRAM}",
-        "args": [],
-        "stopAtEntry": false,
-        "cwd": "${workspaceFolder}",
-        "environment": [],
-        "externalConsole": false,
-        "MIMode": "gdb",
-        "miDebuggerPath": "<path-to-gdb>",
-        "miDebuggerArgs": "-ex 'target remote ${config:MCONFIG.TARGET_IP}:1234'",
-        "preLaunchTask": "build",
-        "setupCommands": [
-          {
-            "description": "Enable pretty-printing for gdb",
-            "text": "-enable-pretty-printing",
-            "ignoreFailures": true
-          }
-        ]
+          "name": "GDB debug with Cross Compiler",
+          "type": "cppdbg",
+          "request": "launch",
+          "program": "${workspaceFolder}/${config:MCONFIG.PROGRAM}",
+          "args": [],
+          "stopAtEntry": true,
+          "cwd": "${workspaceFolder}",
+          "environment": [],
+          "externalConsole": false,
+          "MIMode": "gdb",
+          "targetArchitecture": "arm",
+          "setupCommands": [
+              {
+                  "description": "Enable pretty-printing for gdb",
+                  "text": "-enable-pretty-printing",
+                  "ignoreFailures": true
+              }
+          ],
+          "miDebuggerPath": "${config:MCONFIG.CC_PREFIX}gdb",
+          "miDebuggerServerAddress": "${config:MCONFIG.TARGET_IP}:3000",
+          "preLaunchTask": "cross-build"
+      },
+      {
+          "name": "GDB debug with Host PC",
+          "type": "cppdbg",
+          "request": "launch",
+          "program": "${workspaceFolder}/${config:HostPC.PROGRAM}",
+          "args": [],
+          "stopAtEntry": true,
+          "cwd": "${workspaceFolder}",
+          "environment": [],
+          "externalConsole": false,
+          "MIMode": "gdb",
+          "setupCommands": [
+              {
+                  "description": "Enable pretty-printing for gdb",
+                  "text": "-enable-pretty-printing",
+                  "ignoreFailures": true
+              }
+          ],
+          "miDebuggerPath": "${config:HostPC.CC_PREFIX}gdb",
+          "preLaunchTask": "host-build"
       }
-    ]
-  }
-  
+  ]
+}
