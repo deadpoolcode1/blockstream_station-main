@@ -35,20 +35,20 @@ static int read_initial_configuration()
 
 int state_machine()
 {
-
+  return 0;
 }
 
 int state_discovery()
 {
-
+  return 0;
 }
 
 int state_power_sequence()
 {
-
+  return 0;
 }
 
 int state_monitor()
 {
-
+  return 0;
 }

@@ -1,7 +1,7 @@
 {
     "MCONFIG": {
-        "TARGET_IP": "10.100.102.113",
-        "PROGRAM": "hello_evb.bin",
+        "TARGET_IP": "10.100.102.48",
+        "PROGRAM": "main_evb.bin",
         "ARCH": "arm-xilinx-linux-gnueabi",
         "OECORE_NATIVE_SYSROOT": "/opt/petalinux/2022.2/sysroots/x86_64-petalinux-linux",
         "SDKTARGETSYSROOT": "/opt/petalinux/2022.2/sysroots/cortexa9t2hf-neon-xilinx-linux-gnueabi/",
@@ -11,7 +11,7 @@
     },
     "HostPC": {
         "TARGET_IP": "127.0.0.1",
-        "PROGRAM": "hello_host.bin",
+        "PROGRAM": "main_host.bin",
         "CC_PREFIX": "/usr/bin/",
         "CXX": "${config:HostPC.CC_PREFIX}g++",
         "CC": "${config:HostPC.CC_PREFIX}gcc"

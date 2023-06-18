@@ -1,4 +1,5 @@
 #include <mysql/mysql.h>
+#include <cstdlib>
 #include <stdio.h>
 const char *server = "localhost";
 const char *user = "root";
