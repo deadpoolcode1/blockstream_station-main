@@ -1,12 +1,21 @@
+SHELL := /bin/bash
 CXXFLAGS = -pthread
+OUTPUT_CROSS = hello_evb.bin
+OUTPUT_HOST = hello_host.bin
+CROSS_OPTIONS = -mthumb -mfpu=neon -mfloat-abi=hard -mcpu=cortex-a9 -fstack-protector-strong -O2 -D_FORTIFY_SOURCE=2 -Wformat -Wformat-security -Werror=format-security --sysroot=/opt/petalinux/2022.2/sysroots/cortexa9t2hf-neon-xilinx-linux-gnueabi
+CROSS_COMPILER ?= arm-xilinx-linux-gnueabi-g++
+export CROSS_COMPILER
 
-OUTPUT = main
-
-makepc: main.cpp
-	$(CXX) $(CXXFLAGS) -Og main.cpp -g -o ${OUTPUT} -lpthread
+default: makecross
 
 makecross: main.cpp
-	$(CXX) $(CXXFLAGS) -Og main.cpp -g -o ${OUTPUT} -lpthread -mfpu=neon -mfloat-abi=hard 
+	unset LD_LIBRARY_PATH && source /opt/petalinux/2022.2/environment-setup-cortexa9t2hf-neon-xilinx-linux-gnueabi && $(CROSS_COMPILER) $(CXXFLAGS) $(CROSS_OPTIONS) -Og main.cpp -g -o $(OUTPUT_CROSS) -lpthread -lzmq
+	@echo "Build for cross-compilation complete"
+
+makepc: main.cpp
+	$(CXX) $(CXXFLAGS) -Og main.cpp -g -o $(OUTPUT_HOST) -lpthread -lzmq
+	@echo "Build for PC complete"
 
 clean:
-	rm -f ${OUTPUT}
+	rm -f $(OUTPUT)
+	@echo "Clean complete"
