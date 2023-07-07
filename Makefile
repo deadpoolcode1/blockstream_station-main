@@ -1,5 +1,5 @@
 SHELL := /bin/bash
-CXXFLAGS = -pthread
+CXXFLAGS = -pthread -Ijson/include
 OUTPUT_CROSS = main_evb.bin
 OUTPUT_HOST = main_host.bin
 CLIENT_CROSS = client_evb.bin
