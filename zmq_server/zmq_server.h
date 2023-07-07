@@ -20,6 +20,8 @@ private:
     zmq::socket_t socket;
     std::thread thread;
     std::atomic_bool stop{false};
+    void WriteI2CRegister(int bus, const std::string& address, const std::string& reg, const std::string& value);
+    std::string ReadI2CRegister(int bus, const std::string& address, const std::string& reg);
     static std::string version;
 };
 
