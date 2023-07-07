@@ -5,6 +5,7 @@
 #include <iostream>
 #include "zmq_server/zmq_server.h"
 #include "libs/database.hpp"
+
 static int read_initial_configuration();
 int state_machine();
 int main (void)
