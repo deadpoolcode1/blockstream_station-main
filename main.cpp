@@ -3,19 +3,17 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <iostream>
+#include "zmq_server/zmq_server.h"
 #include "libs/database.hpp"
 static int read_initial_configuration();
 int state_machine();
 int main (void)
 {
-  zmq::context_t context(1);
-    //  Socket to talk to server
+    zmq::context_t context(1);
+    ZmqServer zmqServer(context);
+    zmqServer.Start();
     printf ("starting main…\n");
-    zmq::socket_t sock (context, ZMQ_REQ);
-    sock.connect("ipc:///tmp/test");
-    char msg[] = "get_conf";
-    char buffer[256] = {0x00};
-    int request_nbr;
+    // Wait for some time and then stop the server
     read_initial_configuration();
     state_machine();
     return 0;
@@ -35,6 +33,10 @@ static int read_initial_configuration()
 
 int state_machine()
 {
+  while (true)
+  {
+    sleep(1);
+  }
   return 0;
 }
 
