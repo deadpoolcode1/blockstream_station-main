@@ -32,24 +32,33 @@ void ZmqServer::Stop() {
 __s32 i2c_smbus_access(int file, char read_write, __u8 command,
                                      int size, union i2c_smbus_data *data)
 {
-	struct i2c_smbus_ioctl_data args;
-
-	args.read_write = read_write;
-	args.command = command;
-	args.size = size;
-	args.data = data;
-	return ioctl(file,I2C_SMBUS,&args);
+    struct i2c_smbus_ioctl_data args;
+    args.read_write = read_write;
+    args.command = command;
+    args.size = size;
+    args.data = data;
+    return ioctl(file,I2C_SMBUS,&args);
 }
-
 
 __s32 i2c_smbus_read_byte_data(int file, __u8 command)
 {
-	union i2c_smbus_data data;
-	if (i2c_smbus_access(file,I2C_SMBUS_READ,command,
-	                     I2C_SMBUS_BYTE_DATA,&data))
-		return -1;
-	else
-		return 0x0FF & data.byte;
+    union i2c_smbus_data data;
+    if (i2c_smbus_access(file,I2C_SMBUS_READ,command,
+                         I2C_SMBUS_BYTE_DATA,&data))
+        return -1;
+    else
+        return 0x0FF & data.byte;
+}
+
+__s32 i2c_smbus_write_byte_data(int file, __u8 command, __u8 value)
+{
+    union i2c_smbus_data data;
+    data.byte = value;
+    if (i2c_smbus_access(file,I2C_SMBUS_WRITE,command,
+                         I2C_SMBUS_BYTE_DATA,&data))
+        return -1;
+    else
+        return 0;
 }
 
 std::string ZmqServer::ReadI2CRegister(int bus, int address, int reg) {
@@ -73,6 +82,30 @@ std::string ZmqServer::ReadI2CRegister(int bus, int address, int reg) {
     return std::string(result);
 }
 
+void ZmqServer::WriteI2CRegister(int bus, int address, int reg, int value) {
+    char filename[20];
+    sprintf(filename, "/dev/i2c-%d", bus);
+    int file = open(filename, O_RDWR);
+    if (file < 0) {
+        std::cerr << "Failed to open: " << filename << "\n";
+        return;
+    }
+
+    int rc = ioctl(file, I2C_SLAVE_FORCE, address);
+    if (rc < 0) {
+        std::cerr << "Failed to open: " << filename << "\n";
+        return;
+    }
+
+    rc = i2c_smbus_write_byte_data(file, reg, value);
+    if (rc < 0) {
+        std::cerr << "Failed to write to I2C register\n";
+        return;
+    }
+
+    close(file);
+}
+
 std::string ZmqServer::HandleCommand(const nlohmann::json& command_json) {
     std::string command = command_json.value("command", "");
     if (command == "get_app_version") {
@@ -85,7 +118,17 @@ std::string ZmqServer::HandleCommand(const nlohmann::json& command_json) {
             return "Invalid parameters";
         }
         return ReadI2CRegister(bus, address, reg);
-    }  else {
+    } else if (command == "write_i2c_register") {
+        int bus = command_json["parameters"].value("bus", -1);
+        int address = command_json["parameters"].value("address", -1);
+        int reg = command_json["parameters"].value("reg", -1);
+        int value = command_json["parameters"].value("val", -1);
+        if (bus == -1 || address == -1 || reg == -1 || value == -1) {
+            return "Invalid parameters";
+        }
+        WriteI2CRegister(bus, address, reg, value);
+        return "ACK";
+    } else {
         return "Unknown command";
     }
 }

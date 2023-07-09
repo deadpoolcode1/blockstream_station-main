@@ -15,12 +15,13 @@ public:
 private:
     void Run();
     std::string HandleCommand(const nlohmann::json& command_json);
+    std::string ReadI2CRegister(int bus, int address, int reg);
+    void WriteI2CRegister(int bus, int address, int reg, int value);
 
     zmq::context_t& context;
     zmq::socket_t socket;
     std::thread thread;
     std::atomic_bool stop{false};
-    std::string ReadI2CRegister(int bus, int address, int reg);
     static std::string version;
 };
 
