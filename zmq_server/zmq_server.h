@@ -20,6 +20,7 @@ private:
     std::string ReadMemoryUsage();
     std::string ReadI2CRegister(int bus, int address, int reg);
     void WriteI2CRegister(int bus, int address, int reg, int value);
+    std::string WrapReply(const std::string& result);
 
     zmq::context_t& context;
     zmq::socket_t socket;

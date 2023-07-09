@@ -30,6 +30,13 @@ void ZmqServer::Stop()
         thread.join();
 }
 
+std::string ZmqServer::WrapReply(const std::string& result)
+{
+    nlohmann::json reply;
+    reply["command"] = "ACK";
+    reply["result"] = result;
+    return reply.dump();
+}
 
 std::string ZmqServer::ExecuteCommand(const std::string& command) {
     std::array<char, 128> buffer;
@@ -45,17 +52,17 @@ std::string ZmqServer::ExecuteCommand(const std::string& command) {
     if (!result.empty() && result.back() == '\n') {
         result.pop_back();
     }
-    return result;
+    return WrapReply(result);
 }
 
 std::string ZmqServer::ReadDiskUsage() {
     std::string command = "df -h --output=source,size,used,avail,pcent,target";
-    return ExecuteCommand(command);
+    return WrapReply(ExecuteCommand(command));
 }
 
 std::string ZmqServer::ReadMemoryUsage() {
     std::string command = "free -m";
-    return ExecuteCommand(command);
+    return WrapReply(ExecuteCommand(command));
 }
 
 __s32 i2c_smbus_access(int file, char read_write, __u8 command, int size, union i2c_smbus_data *data)
@@ -93,12 +100,12 @@ std::string ZmqServer::ReadI2CRegister(int bus, int address, int reg)
     sprintf(filename, "/dev/i2c-%d", bus);
     int file = open(filename, O_RDWR);
     if (file < 0)
-        return "Error";
+        return WrapReply("Error");
 
     if (ioctl(file, I2C_SLAVE_FORCE, address) < 0)
     {
         close(file);
-        return "Error";
+        return WrapReply("Error");
     }
 
     int data = i2c_smbus_read_byte_data(file, reg);
@@ -106,7 +113,7 @@ std::string ZmqServer::ReadI2CRegister(int bus, int address, int reg)
     sprintf(result, "%02x", data);
     close(file);
 
-    return std::string(result);
+    return WrapReply(std::string(result));
 }
 
 void ZmqServer::WriteI2CRegister(int bus, int address, int reg, int value)
@@ -135,13 +142,13 @@ void ZmqServer::WriteI2CRegister(int bus, int address, int reg, int value)
 std::string ZmqServer::HandleCommand(const nlohmann::json& command_json) {
     std::string command = command_json.value("command", "");
     if (command == "get_app_version") {
-        return version;
+        return WrapReply(version);
     } else if (command == "read_i2c_register") {
         int bus = command_json["parameters"].value("bus", -1);
         int address = command_json["parameters"].value("address", -1);
         int reg = command_json["parameters"].value("reg", -1);
         if (bus == -1 || address == -1 || reg == -1) {
-            return "Invalid parameters";
+            return WrapReply("Invalid parameters");
         }
         return ReadI2CRegister(bus, address, reg);
     } else if (command == "write_i2c_register") {
@@ -150,16 +157,16 @@ std::string ZmqServer::HandleCommand(const nlohmann::json& command_json) {
         int reg = command_json["parameters"].value("reg", -1);
         int value = command_json["parameters"].value("val", -1);
         if (bus == -1 || address == -1 || reg == -1 || value == -1) {
-            return "Invalid parameters";
+            return WrapReply("Invalid parameters");
         }
         WriteI2CRegister(bus, address, reg, value);
-        return "ACK";
+        return WrapReply("ACK");
     } else if (command == "read_disk_usage") {
         return ReadDiskUsage();
     } else if (command == "read_memory_usage") {
         return ReadMemoryUsage();
     } else {
-        return "Unknown command";
+        return WrapReply("Unknown command");
     }
 }
 

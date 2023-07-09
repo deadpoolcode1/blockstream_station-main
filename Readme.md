@@ -87,3 +87,21 @@ The server responds with the value read from the specified register.
 }'
 ```
 The server responds ACK.
+
+- `read_memory_usage` - This command reads device memory usage.
+
+**For example:**
+
+```bash
+./client_host.bin '{"command": "read_memory_usage"}'
+```
+The server responds memory usage.
+
+- `read_disk_uage` - This command reads disk usage.
+
+**For example:**
+
+```bash
+./client_host.bin '{"command": "read_disk_usage"}'
+```
+The server responds disk usage.
