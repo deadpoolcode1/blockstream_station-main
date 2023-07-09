@@ -54,3 +54,36 @@ Currently, the server supports the following command:
 ./client_host.bin '{"command":"get_app_version"}'
 ```
 The server will then respond with the current version of the application.
+
+- `read_i2c_register` - This command reads the value from a specific register on an I2C device.
+
+**For example:**
+
+```bash
+./client_host.bin '{
+    "command": "read_i2c_register",
+    "parameters": {
+        "bus": <bus_number>,
+        "address": <device_address>,
+        "reg": <register_address>
+    }
+}'
+```
+The server responds with the value read from the specified register.
+
+- `write_i2c_register` - This command reads the value from a specific register on an I2C device.
+
+**For example:**
+
+```bash
+./client_host.bin '{
+    "command": "write_i2c_register",
+    "parameters": {
+        "bus": <bus_number>,
+        "address": <device_address>,
+        "reg": <register_address>,
+        "reg": value
+    }
+}'
+```
+The server responds with the value read from the specified register.
