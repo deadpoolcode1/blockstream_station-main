@@ -15,6 +15,9 @@ public:
 private:
     void Run();
     std::string HandleCommand(const nlohmann::json& command_json);
+    std::string ExecuteCommand(const std::string& command);
+    std::string ReadDiskUsage();
+    std::string ReadMemoryUsage();
     std::string ReadI2CRegister(int bus, int address, int reg);
     void WriteI2CRegister(int bus, int address, int reg, int value);
 
