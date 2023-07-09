@@ -12,39 +12,38 @@
 
 std::string ZmqServer::version = "1.0.0";
 
-ZmqServer::ZmqServer(zmq::context_t& context) 
-    : context(context), socket(context, ZMQ_REP) {
+ZmqServer::ZmqServer(zmq::context_t& context)
+    : context(context), socket(context, ZMQ_REP)
+{
     socket.bind("ipc:///tmp/test");
 }
 
-void ZmqServer::Start() {
+void ZmqServer::Start()
+{
     thread = std::thread([this] { this->Run(); });
 }
 
-void ZmqServer::Stop() {
+void ZmqServer::Stop()
+{
     stop = true;
-    if (thread.joinable()) {
+    if (thread.joinable())
         thread.join();
-    }
 }
 
-
-__s32 i2c_smbus_access(int file, char read_write, __u8 command,
-                                     int size, union i2c_smbus_data *data)
+__s32 i2c_smbus_access(int file, char read_write, __u8 command, int size, union i2c_smbus_data *data)
 {
     struct i2c_smbus_ioctl_data args;
     args.read_write = read_write;
     args.command = command;
     args.size = size;
     args.data = data;
-    return ioctl(file,I2C_SMBUS,&args);
+    return ioctl(file, I2C_SMBUS, &args);
 }
 
 __s32 i2c_smbus_read_byte_data(int file, __u8 command)
 {
     union i2c_smbus_data data;
-    if (i2c_smbus_access(file,I2C_SMBUS_READ,command,
-                         I2C_SMBUS_BYTE_DATA,&data))
+    if (i2c_smbus_access(file, I2C_SMBUS_READ, command, I2C_SMBUS_BYTE_DATA, &data))
         return -1;
     else
         return 0x0FF & data.byte;
@@ -54,110 +53,107 @@ __s32 i2c_smbus_write_byte_data(int file, __u8 command, __u8 value)
 {
     union i2c_smbus_data data;
     data.byte = value;
-    if (i2c_smbus_access(file,I2C_SMBUS_WRITE,command,
-                         I2C_SMBUS_BYTE_DATA,&data))
+    if (i2c_smbus_access(file, I2C_SMBUS_WRITE, command, I2C_SMBUS_BYTE_DATA, &data))
         return -1;
     else
         return 0;
 }
 
-std::string ZmqServer::ReadI2CRegister(int bus, int address, int reg) {
+std::string ZmqServer::ReadI2CRegister(int bus, int address, int reg)
+{
     char filename[20];
     sprintf(filename, "/dev/i2c-%d", bus);
     int file = open(filename, O_RDWR);
-    if (file < 0) {
-        std::cerr << "Failed to open: " << filename << "\n";
-        return std::string("Error");
-    }
+    if (file < 0)
+        return "Error";
 
-    int rc = ioctl(file, I2C_SLAVE_FORCE, address);
-    if (rc < 0) {
-        std::cerr << "Failed to open: " << filename << "\n";
-        return std::string("Error");
+    if (ioctl(file, I2C_SLAVE_FORCE, address) < 0)
+    {
+        close(file);
+        return "Error";
     }
 
     int data = i2c_smbus_read_byte_data(file, reg);
-    char result[3] = {0};
+    char result[3];
     sprintf(result, "%02x", data);
+    close(file);
+
     return std::string(result);
 }
 
-void ZmqServer::WriteI2CRegister(int bus, int address, int reg, int value) {
+void ZmqServer::WriteI2CRegister(int bus, int address, int reg, int value)
+{
     char filename[20];
     sprintf(filename, "/dev/i2c-%d", bus);
     int file = open(filename, O_RDWR);
-    if (file < 0) {
-        std::cerr << "Failed to open: " << filename << "\n";
+    if (file < 0)
+        return;
+
+    if (ioctl(file, I2C_SLAVE_FORCE, address) < 0)
+    {
+        close(file);
         return;
     }
 
-    int rc = ioctl(file, I2C_SLAVE_FORCE, address);
-    if (rc < 0) {
-        std::cerr << "Failed to open: " << filename << "\n";
-        return;
-    }
-
-    rc = i2c_smbus_write_byte_data(file, reg, value);
-    if (rc < 0) {
-        std::cerr << "Failed to write to I2C register\n";
+    if (i2c_smbus_write_byte_data(file, reg, value) < 0)
+    {
+        close(file);
         return;
     }
 
     close(file);
 }
 
-std::string ZmqServer::HandleCommand(const nlohmann::json& command_json) {
+std::string ZmqServer::HandleCommand(const nlohmann::json& command_json)
+{
     std::string command = command_json.value("command", "");
-    if (command == "get_app_version") {
+    if (command == "get_app_version")
+    {
         return version;
-    } else if (command == "read_i2c_register") {
+    }
+    else if (command == "read_i2c_register")
+    {
         int bus = command_json["parameters"].value("bus", -1);
         int address = command_json["parameters"].value("address", -1);
         int reg = command_json["parameters"].value("reg", -1);
-        if (bus == -1 || address == -1 || reg == -1 ) {
+        if (bus == -1 || address == -1 || reg == -1)
             return "Invalid parameters";
-        }
         return ReadI2CRegister(bus, address, reg);
-    } else if (command == "write_i2c_register") {
+    }
+    else if (command == "write_i2c_register")
+    {
         int bus = command_json["parameters"].value("bus", -1);
         int address = command_json["parameters"].value("address", -1);
         int reg = command_json["parameters"].value("reg", -1);
         int value = command_json["parameters"].value("val", -1);
-        if (bus == -1 || address == -1 || reg == -1 || value == -1) {
+        if (bus == -1 || address == -1 || reg == -1 || value == -1)
             return "Invalid parameters";
-        }
         WriteI2CRegister(bus, address, reg, value);
         return "ACK";
-    } else {
+    }
+    else
+    {
         return "Unknown command";
     }
 }
 
-void ZmqServer::Run() {
-    while (!stop) {
+void ZmqServer::Run()
+{
+    while (!stop)
+    {
         zmq::message_t request;
-
-        // Use the new recv function
-        auto res = socket.recv(request, zmq::recv_flags::none);
-        if (!res) {
-            // Handle the error, for example:
-            std::cerr << "Failed to receive message: " << zmq_strerror(errno) << "\n";
+        if (!socket.recv(request, zmq::recv_flags::none))
             continue;
-        }
-        
-        // Define received_message in this scope
+
         std::string received_message(static_cast<char*>(request.data()), request.size());
         std::cout << "Received message: " << received_message << "\n";
 
-        // Parse the message and handle the command
         nlohmann::json command_json = nlohmann::json::parse(received_message);
         std::string response = HandleCommand(command_json);
-        
-        // Create the reply
+
         zmq::message_t reply(response.size());
         memcpy(reply.data(), response.data(), response.size());
 
-        // Use the new send function
         socket.send(reply, zmq::send_flags::none);
     }
 }
