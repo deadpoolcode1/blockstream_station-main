@@ -2,6 +2,9 @@
 #include <unistd.h>
 #include <iostream>
 #include <linux/i2c-dev.h>
+#include <linux/types.h>
+#include <linux/i2c.h>
+#include <linux/i2c-dev.h>
 #include <sys/ioctl.h>
 #include <fcntl.h>
 #include "../json/include/nlohmann/json.hpp"
@@ -24,59 +27,50 @@ void ZmqServer::Stop() {
         thread.join();
     }
 }
- 
-std::string ZmqServer::ReadI2CRegister(int bus, const std::string& address, const std::string& reg){
-    int addressInt = std::stoi(address, nullptr, 16);
-    int regInt = std::stoi(reg, nullptr, 16);
-    char filename[20];
-    sprintf(filename, "/dev/i2c-%d", bus);
-    int file = open(filename, O_RDWR);
-    if (file < 0) {
-        /* ERROR HANDLING */
-    }
-    if (ioctl(file, I2C_SLAVE, address) < 0) {
-        /* ERROR HANDLING */
-    }
 
-    char buf[2] = {0};
-    buf[0] = regInt;
-    if (write(file, buf, 1) != 1) {
-        /* ERROR HANDLING */
-    }
 
-    if (read(file, buf, 1) != 1) {
-        /* ERROR HANDLING */
-    }
+__s32 i2c_smbus_access(int file, char read_write, __u8 command,
+                                     int size, union i2c_smbus_data *data)
+{
+	struct i2c_smbus_ioctl_data args;
 
-    close(file);
-
-    char result[3];
-    sprintf(result, "%02x", buf[0]);
-    return std::string(result);
+	args.read_write = read_write;
+	args.command = command;
+	args.size = size;
+	args.data = data;
+	return ioctl(file,I2C_SMBUS,&args);
 }
 
-void ZmqServer::WriteI2CRegister(int bus, const std::string& address, const std::string& reg, const std::string& value) {
-    int addressInt = std::stoi(address, nullptr, 16);
-    int regInt = std::stoi(reg, nullptr, 16);
-    int valueInt = std::stoi(value, nullptr, 16);
+
+__s32 i2c_smbus_read_byte_data(int file, __u8 command)
+{
+	union i2c_smbus_data data;
+	if (i2c_smbus_access(file,I2C_SMBUS_READ,command,
+	                     I2C_SMBUS_BYTE_DATA,&data))
+		return -1;
+	else
+		return 0x0FF & data.byte;
+}
+
+std::string ZmqServer::ReadI2CRegister(int bus, int address, int reg) {
     char filename[20];
     sprintf(filename, "/dev/i2c-%d", bus);
     int file = open(filename, O_RDWR);
     if (file < 0) {
-        /* ERROR HANDLING */
-    }
-    if (ioctl(file, I2C_SLAVE, address) < 0) {
-        /* ERROR HANDLING */
+        std::cerr << "Failed to open: " << filename << "\n";
+        return std::string("Error");
     }
 
-    char buf[2] = {0};
-    buf[0] = regInt;
-    buf[1] = valueInt;
-    if (write(file, buf, 2) != 2) {
-        /* ERROR HANDLING */
+    int rc = ioctl(file, I2C_SLAVE_FORCE, address);
+    if (rc < 0) {
+        std::cerr << "Failed to open: " << filename << "\n";
+        return std::string("Error");
     }
 
-    close(file);
+    int data = i2c_smbus_read_byte_data(file, reg);
+    char result[3] = {0};
+    sprintf(result, "%02x", data);
+    return std::string(result);
 }
 
 std::string ZmqServer::HandleCommand(const nlohmann::json& command_json) {
@@ -85,23 +79,13 @@ std::string ZmqServer::HandleCommand(const nlohmann::json& command_json) {
         return version;
     } else if (command == "read_i2c_register") {
         int bus = command_json["parameters"].value("bus", -1);
-        std::string address = command_json["parameters"].value("address", "");
-        std::string reg = command_json["parameters"].value("reg", "");
-        if (bus == -1 || address.empty() || reg.empty()) {
+        int address = command_json["parameters"].value("address", -1);
+        int reg = command_json["parameters"].value("reg", -1);
+        if (bus == -1 || address == -1 || reg == -1 ) {
             return "Invalid parameters";
         }
         return ReadI2CRegister(bus, address, reg);
-    } else if (command == "write_i2c_register") {
-        int bus = command_json["parameters"].value("bus", -1);
-        std::string address = command_json["parameters"].value("address", "");
-        std::string reg = command_json["parameters"].value("reg", "");
-        std::string value = command_json["parameters"].value("value", "");
-        if (bus == -1 || address.empty() || reg.empty() || value.empty()) {
-            return "Invalid parameters";
-        }
-        WriteI2CRegister(bus, address, reg, value);
-        return "ACK";
-    } else {
+    }  else {
         return "Unknown command";
     }
 }
