@@ -86,4 +86,4 @@ The server responds with the value read from the specified register.
     }
 }'
 ```
-The server responds with the value read from the specified register.
+The server responds ACK.
