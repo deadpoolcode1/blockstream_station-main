@@ -1,25 +1,47 @@
 #include <iostream>
-#include <thread>
-#include <vector>
 #include <cstring>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <unistd.h>
+#include <pthread.h>
+#include <zmq.hpp>
+#include <string>
 
-void handleClient(int clientSocket) {
+void* handleClient(void* clientSocket) {
+    int socket = *(int*)clientSocket;
     char buffer[1024];
     int bytesRead;
 
-    while ((bytesRead = recv(clientSocket, buffer, sizeof(buffer), 0)) > 0) {
+    while ((bytesRead = recv(socket, buffer, sizeof(buffer), 0)) > 0) {
         buffer[bytesRead] = '\0';
-        std::cout << "Received message: " << buffer << std::endl;
+        std::cout << "Received command: " << buffer << std::endl;
 
-        // Send ACK back to the client
-        const char* ackMessage = "ACK";
-        send(clientSocket, ackMessage, strlen(ackMessage), 0);
+        // Send command to ZeroMQ server
+        std::string messageToSend(buffer);
+
+        zmq::context_t context(1);
+        zmq::socket_t zmqSocket(context, ZMQ_REQ);
+
+        std::cout << "Connecting to ZeroMQ server..." << std::endl;
+        zmqSocket.connect("ipc:///tmp/test");
+
+        zmq::message_t request(messageToSend.size());
+        memcpy(request.data(), messageToSend.data(), messageToSend.size());
+        std::cout << "Sending message to ZeroMQ server: " << messageToSend << "..." << std::endl;
+        zmqSocket.send(request, zmq::send_flags::none);
+
+        zmq::message_t reply;
+        zmqSocket.recv(reply, zmq::recv_flags::none);
+
+        std::string received_message(static_cast<char*>(reply.data()), reply.size());
+        std::cout << "Received message from ZeroMQ server: " << received_message << std::endl;
+
+        // Send ZeroMQ server's response back over TCP
+        send(socket, received_message.c_str(), received_message.size(), 0);
     }
 
-    close(clientSocket);
+    close(socket);
+    return NULL;
 }
 
 int main() {
@@ -53,8 +75,8 @@ int main() {
 
     std::cout << "Listening on TCP port 5555..." << std::endl;
 
+    pthread_t threadId;
     // Accept incoming connections and handle them using threads
-    std::vector<std::thread> threads;
     while (true) {
         clientSocket = accept(serverSocket, (struct sockaddr*)&clientAddr, &clientAddrSize);
         if (clientSocket == -1) {
@@ -62,12 +84,7 @@ int main() {
             continue;
         }
 
-        threads.emplace_back(handleClient, clientSocket);
-    }
-
-    // Join all threads (this part will never be reached in this simple example)
-    for (auto& t : threads) {
-        t.join();
+        pthread_create(&threadId, NULL, &handleClient, (void*)&clientSocket);
     }
 
     close(serverSocket);
