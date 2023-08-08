@@ -7,6 +7,7 @@
 #include <linux/i2c-dev.h>
 #include <sys/ioctl.h>
 #include <fcntl.h>
+#include <sys/mman.h>
 #include "../json/include/nlohmann/json.hpp"
 #include "zmq_server.h"
 
@@ -28,6 +29,28 @@ void ZmqServer::Stop()
     stop = true;
     if (thread.joinable())
         thread.join();
+}
+
+uint8_t ZmqServer::readMemoryAddress(uintptr_t address) {
+    int fd = open("/dev/mem", O_RDONLY);
+    if (fd < 0) {
+        throw std::runtime_error("Failed to open /dev/mem");
+    }
+
+    size_t page_size = getpagesize();
+    uintptr_t page_start = address & ~(page_size - 1);
+    uintptr_t offset = address - page_start;
+
+    void* mapped = mmap(nullptr, page_size, PROT_READ, MAP_SHARED, fd, page_start);
+    if (mapped == MAP_FAILED) {
+        close(fd);
+        throw std::runtime_error("Failed to mmap");
+    }
+
+    uint8_t value = *((uint8_t*)(mapped + offset));
+    munmap(mapped, page_size);
+    close(fd);
+    return value;
 }
 
 std::string ZmqServer::WrapReply(const std::string& result)
@@ -93,6 +116,7 @@ __s32 i2c_smbus_write_byte_data(int file, __u8 command, __u8 value)
     else
         return 0;
 }
+
 
 std::string ZmqServer::ReadI2CRegister(int bus, int address, int reg)
 {
@@ -165,6 +189,27 @@ std::string ZmqServer::HandleCommand(const nlohmann::json& command_json) {
         return ReadDiskUsage();
     } else if (command == "read_memory_usage") {
         return ReadMemoryUsage();
+    } else if (command == "read_memory_address") {
+        std::string address_str = command_json.value("address", "");
+        if (address_str.empty()) {
+            return WrapReply("Invalid address parameter");
+        }
+        
+        uintptr_t address;
+        try {
+            address = std::stoull(address_str, nullptr, 0); // Assuming address is given in hexadecimal
+        } catch (...) {
+            return WrapReply("Error converting address");
+        }
+
+        try {
+            uint8_t value = readMemoryAddress(address);
+            char value_str[4];
+            sprintf(value_str, "%02x", value);
+            return WrapReply(std::string(value_str));
+        } catch (const std::runtime_error& e) {
+            return WrapReply(std::string("Error: ") + e.what());
+        }
     } else {
         return WrapReply("Unknown command");
     }

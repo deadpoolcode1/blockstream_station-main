@@ -2,3 +2,4 @@ main
 client
 *.o
 *.bin
+build/

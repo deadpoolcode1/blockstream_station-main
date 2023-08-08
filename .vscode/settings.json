@@ -79,5 +79,6 @@
         "bitset": "cpp",
         "regex": "cpp",
         "variant": "cpp"
-    }
+    },
+    "cmake.sourceDirectory": "/home/administrator/blockstream/main/json/tests/abi"
 }
